@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Package, Clock, CheckCircle, Truck, AlertCircle, Calendar, ArrowRight, ExternalLink } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Package, Clock, CheckCircle, Calendar, ArrowRight, ExternalLink, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
 import ImageSafe from '../components/ImageSafe';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
@@ -26,8 +25,18 @@ const Orders = () => {
   };
 
   const StatusStepper = ({ currentStatus }) => {
-    const statuses = ['Placed', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
-    const currentIndex = statuses.findIndex(s => s.toLowerCase() === currentStatus.toLowerCase());
+    let statuses = ['Placed', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
+    
+    let statusClean = (currentStatus || 'placed').toLowerCase();
+    
+    if (statusClean.includes('payment pending')) statusClean = 'placed';
+    if (statusClean.includes('cancelled')) {
+      statuses = ['Placed', 'Cancelled'];
+      statusClean = 'cancelled';
+    }
+
+    let currentIndex = statuses.findIndex(s => s.toLowerCase() === statusClean);
+    if (currentIndex === -1) currentIndex = 0;
 
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '32px', position: 'relative', padding: '0 20px' }}>
@@ -144,7 +153,7 @@ const Orders = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '32px' }}>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(var(--primary-rgb), 0.08)', p: '12px', borderRadius: '16px', color: 'var(--primary)', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '12px', borderRadius: '16px', color: 'var(--primary)', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Package size={28} />
                   </div>
                   <div>

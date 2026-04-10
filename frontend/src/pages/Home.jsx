@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { 
   Star, 
@@ -18,7 +17,6 @@ import HeroCarousel from '../components/HeroCarousel';
 import { getRestaurantImage } from '../utils/restaurantImages';
 
 const Home = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');

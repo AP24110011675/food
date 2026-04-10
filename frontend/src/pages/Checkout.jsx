@@ -436,7 +436,7 @@ const Checkout = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', color: '#94a3b8', fontSize: '0.82rem', justifyContent: 'center' }}>
                 <Info size={13} />
-                <span>🔒 100% Secure Checkout · UPI ID: 9229532848@axl</span>
+                <span>🔒 100% Secure Checkout · UPI ID: {import.meta.env.VITE_UPI_ID || '9229532848@axl'}</span>
               </div>
             </motion.div>
           </div>

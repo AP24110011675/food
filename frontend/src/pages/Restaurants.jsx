@@ -303,7 +303,7 @@ const Restaurants = () => {
                       </p>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 700, borderTop: '1px solid #f8fafc', paddingTop: '20px' }}>
                         <span>₹{restaurant.averageCost || '300'} for two</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> {restaurant.address?.city || 'Bandra'}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> {restaurant.address?.city || restaurant.address || 'Bandra'}</span>
                       </div>
                     </div>
                   </motion.div>
