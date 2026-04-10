@@ -1,38 +1,69 @@
-const express    = require('express');
-const cors       = require('cors');
-const dotenv     = require('dotenv');
-const connectDB  = require('./server/config/db.js');
-const { errorHandler } = require('./server/middleware/errorMiddleware');
-const mongoose   = require('mongoose');
+const express = require('express');
+const dotenv = require('dotenv');
+const colors = require('colors');
+const morgan = require('morgan');
+const path = require('path');
+const { notFound, errorHandler } = require('./backend/middleware/errorMiddleware');
+const connectDB = require('./backend/config/db');
 
+// Load env vars
 dotenv.config();
+
+// Connect to database
 connectDB();
 
+// Route files
+const authRoutes = require('./backend/routes/authRoutes');
+const restaurantRoutes = require('./backend/routes/restaurantRoutes');
+const menuRoutes = require('./backend/routes/menuRoutes');
+const orderRoutes = require('./backend/routes/orderRoutes');
+const reviewRoutes = require('./backend/routes/reviewRoutes');
+const adminRoutes = require('./backend/routes/adminRoutes');
+
 const app = express();
-app.use(cors());
+
+// Body parser
 app.use(express.json());
 
-app.use('/api/auth',        require('./server/routes/authRoutes'));
-app.use('/api/restaurants', require('./server/routes/restaurantRoutes'));
-app.use('/api/menu',        require('./server/routes/menuRoutes'));
-app.use('/api/orders',      require('./server/routes/orderRoutes'));
-app.use('/api/reviews',     require('./server/routes/reviewRoutes'));
-app.use('/api/admin',       require('./server/routes/adminRoutes'));
+// Dev logging middleware
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}
 
-app.get('/', (req, res) => res.send('🍔 Food Ordering API Running'));
+// Mount routers
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/restaurants', restaurantRoutes);
+app.use('/api/v1/menu', menuRoutes);
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
+// Static folder
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'frontend/dist')));
+    app.get('*', (req, res) => res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html')));
+} else {
+    app.get('/', (req, res) => {
+        res.send('API is running...');
+    });
+}
+
+// Error handling
+app.use(notFound);
 app.use(errorHandler);
 
-main()
-    .then(() =>{
-         console.log('Connected to MongoDB')
-        })
-    .catch(err =>{ 
-        console.error('MongoDB connection error:', err)
-     });
+const PORT = process.env.PORT || 5001;
 
-async function main() {
-    await mongoose.connect(process.env.MONGO_URI);
-}
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+const server = app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+    console.log(`Error: ${err.message}`.red);
+    // Close server & exit process
+    server.close(() => process.exit(1));
+});
