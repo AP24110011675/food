@@ -1,0 +1,2 @@
+alert('ROOT TEST EXECUTING');
+console.log('ROOT TEST EXECUTING');
