@@ -39,14 +39,14 @@ const Home = () => {
   }, []);
 
   const popularDishes = useMemo(() => [
-    { name: 'Biryani', price: '199', image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?w=500&q=80' },
-    { name: 'Pizza', price: '299', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80' },
-    { name: 'Burgers', price: '149', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80' },
-    { name: 'Sushi', price: '399', image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&q=80' },
-    { name: 'Pasta', price: '249', image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?w=500&q=80' },
-    { name: 'Desserts', price: '129', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80' },
-    { name: 'Coffee', price: '99', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80' },
-    { name: 'Healthy', price: '179', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&q=80' },
+    { name: 'Biryani', price: '199', image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Pizza', price: '299', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Burgers', price: '149', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Sushi', price: '399', image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Pasta', price: '249', image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Desserts', price: '129', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Coffee', price: '99', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Healthy', price: '179', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80' },
   ], []);
 
   const handleSearch = useCallback((e) => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogIn, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import ImageSafe from '../components/ImageSafe';
@@ -187,7 +187,7 @@ const Login = () => {
           </form>
 
           <div style={{ textAlign: 'center', marginTop: '40px', color: 'var(--text-secondary)', fontSize: '1rem' }}>
-            Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700 }}>Join FoodHub</Link>
+            Don&apos;t have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700 }}>Join FoodHub</Link>
           </div>
         </motion.div>
       </div>

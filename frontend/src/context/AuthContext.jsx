@@ -1,7 +1,6 @@
-import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../services/api';
-
-const AuthContext = createContext();
+import { AuthContext } from './AuthContextInstance';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -14,7 +13,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await api.get('/auth/profile');
         setUser(res.data.data);
-      } catch (err) {
+      } catch {
         localStorage.removeItem('token');
         setUser(null);
       }
@@ -76,4 +75,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+

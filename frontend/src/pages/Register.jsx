@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Mail, Lock, User as UserIcon, AlertCircle, Phone, ArrowRight } from 'lucide-react';
 import ImageSafe from '../components/ImageSafe';

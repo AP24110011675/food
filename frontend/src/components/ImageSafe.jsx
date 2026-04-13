@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 // High-quality food fallback — Indian spread, always looks great
 const FALLBACK_IMAGE =
@@ -16,15 +16,15 @@ const ImageSafe = ({ src, alt = '', className, style, loading = 'lazy', fallback
   const effectiveFallback = fallback || FALLBACK_IMAGE;
   const initialSrc = isLikelyBroken(src) ? effectiveFallback : src;
 
+  const [prevSrc, setPrevSrc] = useState(src);
   const [imgSrc, setImgSrc] = useState(initialSrc);
   const [errored, setErrored] = useState(false);
 
-  // sync if parent changes src prop
-  useEffect(() => {
-    const next = isLikelyBroken(src) ? effectiveFallback : src;
-    setImgSrc(next);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setImgSrc(isLikelyBroken(src) ? effectiveFallback : src);
     setErrored(false);
-  }, [src]);
+  }
 
   const handleError = () => {
     if (!errored) {

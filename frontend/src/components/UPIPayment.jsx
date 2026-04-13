@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, CheckCircle, Smartphone, ExternalLink, Info, X } from 'lucide-react';
 
 const UPI_ID = '9229532848@axl';
-const PAYEE_NAME = 'FoodHub';
+const PAYEE_NAME = 'FoodApp';
 
 function buildUPILink(amount) {
-  return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent('FoodHub Order Payment')}`;
+  return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR`;
 }
 
 /** Very simple QR renderer using a free Google Charts API */
@@ -79,9 +79,9 @@ const UPI_APPS = [
   },
 ];
 
-export default function UPIPayment({ amount, orderId, onPaymentClaimed, onClose }) {
+export default function UPIPayment({ amount, onPaymentClaimed, onClose }) {
   const [copied, setCopied] = useState(false);
-  const [selectedApp, setSelectedApp] = useState(null);
+  const [, setSelectedApp] = useState(null);
   const [txnId, setTxnId] = useState('');
   const [step, setStep] = useState('choose'); // 'choose' | 'qr' | 'confirm'
   const upiLink = buildUPILink(amount);
@@ -96,6 +96,7 @@ export default function UPIPayment({ amount, orderId, onPaymentClaimed, onClose 
   const handleAppPay = (app) => {
     setSelectedApp(app);
     // Attempt deep link — browser will redirect to app if installed
+    // eslint-disable-next-line react-hooks/immutability
     window.location.href = app.deepLink(amount);
     // After 1.5s assume redirect happened, show confirm step
     setTimeout(() => setStep('confirm'), 1500);
@@ -228,6 +229,31 @@ export default function UPIPayment({ amount, orderId, onPaymentClaimed, onClose 
                     </motion.button>
                   ))}
                 </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => window.location.href = upiLink}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: '1.1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    marginBottom: '16px',
+                    boxShadow: '0 8px 24px rgba(16,185,129,0.3)',
+                  }}
+                >
+                  <Smartphone size={22} /> Pay Now via UPI App
+                </motion.button>
 
                 {/* Divider */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '20px 0' }}>
@@ -403,7 +429,7 @@ export default function UPIPayment({ amount, orderId, onPaymentClaimed, onClose 
                 <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '14px', padding: '14px 18px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', color: '#1d4ed8', fontSize: '0.88rem', fontWeight: 600 }}>
                     <Info size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
-                    <span>After you confirm, your order status will be set to <strong>"Payment Pending Confirmation"</strong>. The restaurant will verify and start preparing your order within minutes.</span>
+                    <span>After you confirm, your order status will be set to &quot;Payment Pending Confirmation&quot;. The restaurant will verify and start preparing your order within minutes.</span>
                   </div>
                 </div>
 

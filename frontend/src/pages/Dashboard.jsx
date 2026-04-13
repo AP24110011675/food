@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import { User, Mail, Phone, ShoppingBag, MapPin, Edit2, Shield, TrendingUp, CreditCard, ChevronRight, Settings, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';

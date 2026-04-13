@@ -1,21 +1,19 @@
-import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-
-const CartContext = createContext();
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { CartContext } from './CartContextInstance';
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
-
-  useEffect(() => {
+  const [cartItems, setCartItems] = useState(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       try {
-        setCartItems(JSON.parse(savedCart));
+        return JSON.parse(savedCart);
       } catch (e) {
         console.error('Failed to parse cart', e);
         localStorage.removeItem('cart');
       }
     }
-  }, []);
+    return [];
+  });
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
@@ -69,4 +67,4 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-export const useCart = () => useContext(CartContext);
+

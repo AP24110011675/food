@@ -20,7 +20,7 @@ const Footer = () => {
               </span>
             </Link>
             <p style={{ color: '#94a3b8', lineHeight: '1.8', marginBottom: '40px', fontSize: '1.1rem', maxWidth: '340px' }}>
-              Bringing the world's finest cuisines to your doorstep with lightning-fast delivery and uncompromising quality.
+              Bringing the world&apos;s finest cuisines to your doorstep with lightning-fast delivery and uncompromising quality.
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>
               {[1, 2, 3].map((_, i) => (

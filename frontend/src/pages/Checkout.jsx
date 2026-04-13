@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { MapPin, CreditCard, ShoppingBag, ArrowLeft, CheckCircle, Truck, Info, Smartphone, Clock } from 'lucide-react';
@@ -161,7 +161,7 @@ const Checkout = () => {
                       Payment Pending Confirmation
                     </div>
                     <div style={{ color: '#78350f', lineHeight: 1.6, fontSize: '0.95rem' }}>
-                      We've received your payment claim. Our team will verify your UPI payment and start preparing your order within <strong>5–10 minutes</strong>.
+                      <span>After you confirm, your order status will be set to &quot;Payment Pending Confirmation&quot;. The restaurant will verify and start preparing your order within <strong>5–10 minutes</strong>.</span>
                     </div>
                     <div style={{ marginTop: '12px', color: '#92400e', fontSize: '0.88rem', fontWeight: 600 }}>
                       Order ID: <code style={{ background: '#fef3c7', padding: '2px 8px', borderRadius: '6px' }}>{orderSuccess.orderId}</code>
@@ -171,7 +171,7 @@ const Checkout = () => {
               </div>
             ) : (
               <p style={{ fontSize: '1.2rem', color: '#64748b', marginBottom: '40px', maxWidth: '500px', margin: '0 auto 40px' }}>
-                Your order is confirmed! We'll start preparing it right away.
+                Your order is confirmed! We&apos;ll start preparing it right away.
               </p>
             )}
           </motion.div>

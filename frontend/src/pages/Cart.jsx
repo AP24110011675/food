@@ -1,6 +1,6 @@
 import React from 'react';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, CreditCard, ShoppingBag, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -56,7 +56,7 @@ const Cart = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '60px', alignItems: 'start' }} className="grid-responsive">
         <div className="cart-items" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <AnimatePresence mode="popLayout">
-            {cartItems.map((item, idx) => (
+            {cartItems.map((item) => (
               <motion.div 
                 key={item._id} 
                 className="card hover-pop" 

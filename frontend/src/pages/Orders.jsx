@@ -9,10 +9,6 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   const fetchOrders = async () => {
     try {
       const res = await api.get('/orders/myorders');
@@ -24,12 +20,19 @@ const Orders = () => {
     }
   };
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchOrders();
+  }, []);
+
   const StatusStepper = ({ currentStatus }) => {
     let statuses = ['Placed', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
     
     let statusClean = (currentStatus || 'placed').toLowerCase();
     
-    if (statusClean.includes('payment pending')) statusClean = 'placed';
+    const isPaymentPendingResult = statusClean.includes('payment pending');
+    if (isPaymentPendingResult) statusClean = 'placed';
+    
     if (statusClean.includes('cancelled')) {
       statuses = ['Placed', 'Cancelled'];
       statusClean = 'cancelled';
@@ -135,7 +138,7 @@ const Orders = () => {
             <ShoppingBag size={70} style={{ color: 'rgba(var(--primary-rgb), 0.2)' }} />
           </div>
           <h3 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '16px' }}>No orders found</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px' }}>It looks like you haven't placed any orders yet. Let's change that!</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px' }}>It looks like you haven&apos;t placed any orders yet. Let&apos;s change that!</p>
           <Link to="/restaurants" className="btn btn-primary" style={{ padding: '16px 48px', fontSize: '1.1rem', borderRadius: '16px' }}>
             Explore Delicious Food <ArrowRight size={20} style={{ marginLeft: '8px' }} />
           </Link>
@@ -216,6 +219,31 @@ const Orders = () => {
                     ))}
                   </div>
                   
+                  {order.status === 'Payment Pending Confirmation' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      style={{ 
+                        marginTop: '32px', 
+                        padding: '20px 24px', 
+                        background: '#fffbeb', 
+                        border: '1.5px solid #fcd34d', 
+                        borderRadius: '20px',
+                        display: 'flex',
+                        gap: '16px',
+                        alignItems: 'flex-start'
+                      }}
+                    >
+                      <Clock size={20} color="#d97706" style={{ marginTop: '2px', flexShrink: 0 }} />
+                      <div>
+                        <p style={{ fontWeight: 800, color: '#92400e', margin: '0 0 4px 0', fontSize: '1rem' }}>Payment Verification in Progress</p>
+                        <p style={{ color: '#b45309', margin: 0, fontSize: '0.9rem', lineHeight: 1.5, fontWeight: 500 }}>
+                          We&apos;ve received your payment details. A restaurant administrator is verifying the transaction. This usually takes <strong>5-10 minutes</strong>. Once verified, your order will move to &quot;Preparing&quot;.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
                   <StatusStepper currentStatus={order.status} />
                 </div>
                 

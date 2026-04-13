@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../hooks/useCart';
 import { ShoppingCart, User, LogOut, History, ChefHat, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -134,6 +134,11 @@ const Navbar = () => {
               <Link to="/orders" style={linkStyle(location.pathname === '/orders')} title="My Orders">
                 <History size={20} />
               </Link>
+              {(user.role === 'admin' || user.role === 'restaurant_owner') && (
+                <Link to="/admin/orders" style={linkStyle(location.pathname === '/admin/orders')} title="Manage Orders">
+                  <ChefHat size={20} />
+                </Link>
+              )}
               <Link to="/dashboard" style={linkStyle(location.pathname === '/dashboard')}>
                 <motion.div 
                   whileHover={{ scale: 1.05 }}

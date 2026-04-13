@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ImageSafe from './ImageSafe';
 
 const slides = [
   {
@@ -79,7 +80,7 @@ export default function HeroCarousel({ children }) {
             pointerEvents: i === current ? 'auto' : 'none',
           }}
         >
-          <img
+          <ImageSafe
             src={slide.image}
             alt={slide.label}
             loading={i === 0 ? 'eager' : 'lazy'}

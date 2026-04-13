@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 import { Star, MapPin, ChevronLeft, ChevronRight, Zap, Search, Filter, Clock, Flame, Info, CheckCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageSafe from '../components/ImageSafe';
@@ -19,7 +19,7 @@ const CATEGORIES = [
 ];
 
 const Restaurants = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -28,17 +28,16 @@ const Restaurants = () => {
   const [menuItems, setMenuItems] = useState([]);
   const { addToCart } = useCart();
   const sliderRef = useRef(null);
-  const navigate = useNavigate();
 
   const featuredDishes = useMemo(() => [
-    { id: 1, name: 'Premium Mutton Biryani', price: 450, image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?w=600&q=80', rating: 4.8 },
-    { id: 2, name: 'Double Cheese Margherita', price: 320, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80', rating: 4.7 },
-    { id: 3, name: 'Monster Wagyu Burger', price: 550, image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=600&q=80', rating: 4.9 },
-    { id: 4, name: 'Chicken Tikka Roll', price: 210, image: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=600&q=80', rating: 4.6 },
-    { id: 5, name: 'Dal Makhani Special', price: 280, image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=600&q=80', rating: 4.8 },
-    { id: 6, name: 'Paneer Tikka Masala', price: 320, image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=600&q=80', rating: 4.7 },
-    { id: 7, name: 'Masala Dosa', price: 150, image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=600&q=80', rating: 4.5 },
-    { id: 8, name: 'Samosa Chaat', price: 120, image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80', rating: 4.4 },
+    { id: 1, name: 'Premium Mutton Biryani', price: 450, image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=600&q=80', rating: 4.8 },
+    { id: 2, name: 'Double Cheese Margherita', price: 320, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80', rating: 4.7 },
+    { id: 3, name: 'Monster Wagyu Burger', price: 550, image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=600&q=80', rating: 4.9 },
+    { id: 4, name: 'Chicken Tikka Roll', price: 210, image: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=600&q=80', rating: 4.6 },
+    { id: 5, name: 'Dal Makhani Special', price: 280, image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=600&q=80', rating: 4.8 },
+    { id: 6, name: 'Paneer Tikka Masala', price: 320, image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=600&q=80', rating: 4.7 },
+    { id: 7, name: 'Masala Dosa', price: 150, image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=600&q=80', rating: 4.5 },
+    { id: 8, name: 'Samosa Chaat', price: 120, image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80', rating: 4.4 },
   ], []);
 
   const scrollSlider = useCallback((direction) => {
@@ -201,7 +200,6 @@ const Restaurants = () => {
             </motion.div>
           </section>
 
-          {/* FEATURED FOOD SLIDER */}
           {searchTerm === '' && (
             <motion.section variants={itemVariants} className="container" style={{ marginBottom: '80px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
@@ -260,7 +258,6 @@ const Restaurants = () => {
             </motion.section>
           )}
 
-          {/* RESTAURANT LIST */}
           <section className="container" style={{ marginBottom: '100px' }}>
             <motion.div variants={itemVariants} style={{ marginBottom: '40px' }}>
                <h2 style={{ fontSize: '2.5rem', fontWeight: 900 }}>Popular <span style={{ color: 'var(--primary)' }}>Halt</span> 📍</h2>
@@ -269,7 +266,7 @@ const Restaurants = () => {
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '40px' }}>
               {filteredRestaurants.length > 0 ? (
-                filteredRestaurants.map((restaurant, idx) => (
+                filteredRestaurants.map((restaurant) => (
                   <motion.div 
                     key={restaurant._id} 
                     variants={itemVariants}
@@ -311,8 +308,8 @@ const Restaurants = () => {
               ) : (
                 <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '100px 0' }}>
                   <div style={{ fontSize: '5rem', marginBottom: '24px' }}>🔍</div>
-                  <h3 style={{ fontSize: '2rem', fontWeight: 900 }}>No results for "{searchTerm}"</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 600 }}>We couldn't find what you're looking for. Try another keyword!</p>
+                  <h3 style={{ fontSize: '2rem', fontWeight: 900 }}>No results for &quot;{searchTerm}&quot;</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 600 }}>We couldn&apos;t find what you&apos;re looking for. Try another keyword!</p>
                   <button 
                     onClick={() => { setSearchTerm(''); setCategoryFilter('all'); }} 
                     className="btn btn-primary" 
