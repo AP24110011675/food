@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 // High-quality food fallback — Indian spread, always looks great
 const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=800&q=80';
+  'https://images.unsplash.com/photo-1546069901-eacef0df6022?auto=format&fit=crop&w=800&q=80';
 
 const BROKEN_PATTERNS = ['no-photo', 'placeholder', 'undefined', 'null', 'default'];
 

@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 
-console.log('MAIN.JSX EXECUTING WITH FULL APP');
-
 window.onerror = function(message, source, lineno, colno, error) {
   console.error('GLOBAL ERROR:', message, 'at', source, lineno, colno, error);
 };
@@ -21,7 +19,6 @@ try {
         <App />
       </React.StrictMode>,
     )
-    console.log('RENDER ATTEMPTED');
   } else {
     console.error('ROOT ELEMENT NOT FOUND');
   }

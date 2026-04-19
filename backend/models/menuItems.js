@@ -17,9 +17,9 @@ const menuItemSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Please add a category'],
-        enum: ['Starters', 'Main Course', 'Desserts', 'Beverages', 'Fast Food', 'Pizza', 'Burger', 'Chinese', 'Indian', 'Healthy']
+        enum: ['Starters', 'Main Course', 'Desserts', 'Beverages', 'Fast Food', 'Pizza', 'Burger', 'Chinese', 'Indian', 'North Indian', 'South Indian', 'Japanese', 'Italian', 'Mexican', 'Healthy', 'Snacks', 'Biryani', 'Street Food', 'All']
     },
-    restaurant: {
+    restaurantId: {
         type: mongoose.Schema.ObjectId,
         ref: 'Restaurant',
         required: true

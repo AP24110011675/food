@@ -14,7 +14,7 @@ const { restaurantOwner } = require('../middleware/roleMiddleware');
 
 router.route('/')
     .post(protect, addOrderItems)
-    .get(protect, restaurantOwner, getAllOrders);
+    .get(protect, getMyOrders);
 
 router.route('/myorders')
     .get(protect, getMyOrders);

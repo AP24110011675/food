@@ -43,14 +43,14 @@ const Cart = () => {
   }
 
   return (
-    <div className="container" style={{ padding: '60px 20px', marginTop: '100px', maxWidth: '1200px' }}>
+    <div className="container" style={{ padding: '40px 20px 100px', marginTop: 'var(--nav-height)', maxWidth: '1200px' }}>
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         style={{ marginBottom: '48px' }}
       >
-        <h1 style={{ fontSize: '3.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>Your <span style={{ color: 'var(--primary)' }}>Cravings</span></h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 600 }}>Review your items and proceed to secure checkout.</p>
+        <h1 className="heading-lg" style={{ marginBottom: '8px' }}>Your <span style={{ color: 'var(--primary)' }}>Cravings</span></h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', fontWeight: 500 }}>Review your items and proceed to secure checkout.</p>
       </motion.div>
       
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '60px', alignItems: 'start' }} className="grid-responsive">
@@ -70,19 +70,23 @@ const Cart = () => {
                 <div style={{ width: '120px', height: '120px', borderRadius: '24px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }}>
                   <ImageSafe src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                     <div style={{ width: '12px', height: '12px', border: '1.5px solid #15b315', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#15b315' }}></div>
-                      </div>
-                    <h4 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{item.name}</h4>
-                  </div>
+                  <div 
+                    style={{ flex: 1, cursor: 'pointer' }} 
+                    onClick={() => navigate(`/restaurants?id=${item.restaurantId}`)}
+                    className="hover-pop"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                       <div style={{ width: '12px', height: '12px', border: '1.5px solid #15b315', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#15b315' }}></div>
+                        </div>
+                      <h4 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{item.name}</h4>
+                    </div>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '16px', fontWeight: 600 }}>₹{item.price} per item</p>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px', border: '1px solid #e2e8f0', padding: '10px 20px', borderRadius: '16px', background: '#f8fafc' }}>
                       <button 
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)} 
+                        onClick={(e) => { e.stopPropagation(); updateQuantity(item._id, item.quantity - 1); }} 
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '6px', color: '#64748b' }}
                         className="hover-pop"
                       >
@@ -90,7 +94,7 @@ const Cart = () => {
                       </button>
                       <span style={{ fontWeight: 800, minWidth: '28px', textAlign: 'center', fontSize: '1.25rem', color: 'var(--text-primary)' }}>{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)} 
+                        onClick={(e) => { e.stopPropagation(); updateQuantity(item._id, item.quantity + 1); }} 
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '6px', color: 'var(--primary)' }}
                         className="hover-pop"
                       >
@@ -102,7 +106,7 @@ const Cart = () => {
                 </div>
                 
                 <button 
-                  onClick={() => removeFromCart(item._id)}
+                  onClick={(e) => { e.stopPropagation(); removeFromCart(item._id); }}
                   style={{ color: '#cbd5e1', background: 'none', border: 'none', cursor: 'pointer', padding: '12px', borderRadius: '14px', transition: 'all 0.2s ease' }}
                   className="hover-danger"
                 >

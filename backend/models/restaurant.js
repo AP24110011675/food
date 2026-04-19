@@ -20,6 +20,26 @@ const restaurantSchema = new mongoose.Schema({
         max: [5, 'Rating cannot be more than 5'],
         default: 4.0
     },
+    category: {
+        type: String,
+        default: 'All'
+    },
+    isTrending: {
+        type: Boolean,
+        default: false
+    },
+    cuisineType: {
+        type: [String],
+        default: ['Indian']
+    },
+    averageCost: {
+        type: Number,
+        default: 400
+    },
+    deliveryTime: {
+        type: Number,
+        default: 30
+    },
     image: {
         type: String,
         default: 'no-photo.jpg'

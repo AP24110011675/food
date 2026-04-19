@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../hooks/useCart';
-import { ShoppingCart, User, LogOut, History, ChefHat, Search } from 'lucide-react';
+import { ShoppingCart, User, LogOut, History, ChefHat, Search, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
@@ -11,6 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isHome = location.pathname === '/';
   const isTransparent = isHome && !isScrolled;
@@ -24,17 +25,19 @@ const Navbar = () => {
   }, []);
 
   const navStyle = {
-    backgroundColor: isTransparent ? 'transparent' : 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: isTransparent ? 'transparent' : 'var(--bg-main)',
     boxShadow: isTransparent ? 'none' : 'var(--shadow-md)',
-    backdropFilter: isTransparent ? 'none' : 'blur(15px)',
-    borderBottom: isTransparent ? 'none' : '1px solid rgba(0,0,0,0.05)',
-    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+    backdropFilter: isTransparent ? 'none' : 'blur(20px)',
+    borderBottom: isTransparent ? 'none' : '1px solid rgba(0,0,0,0.06)',
+    transition: 'var(--transition)',
     position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
-    padding: isScrolled ? '12px 0' : '20px 0',
+    height: 'var(--nav-height)',
+    display: 'flex',
+    alignItems: 'center'
   };
 
   const linkStyle = (active) => ({
@@ -92,7 +95,7 @@ const Navbar = () => {
           )}
         </AnimatePresence>
 
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }} className="nav-desktop">
           <Link to="/restaurants" style={linkStyle(location.pathname === '/restaurants')}>Explore</Link>
           
           <Link to="/cart" style={linkStyle(location.pathname === '/cart')} className="cart-link">
@@ -145,7 +148,9 @@ const Navbar = () => {
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', background: isTransparent ? 'rgba(255,255,255,0.2)' : '#f8fafc', padding: '6px 12px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(0,0,0,0.05)' }}
                 >
                   <User size={18} />
-                  <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontSize: '0.9rem' }}>{user.name.split(' ')[0]}</span>
+                  <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, fontSize: '0.9rem' }}>
+                    {(user?.name || 'User').split(' ')[0]}
+                  </span>
                 </motion.div>
               </Link>
               <motion.button 
@@ -164,7 +169,65 @@ const Navbar = () => {
             </div>
           )}
         </div>
+
+        {/* Mobile Toggle */}
+        <button 
+          className="nav-mobile-toggle" 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          style={{ background: 'transparent', border: 'none', color: isTransparent ? '#fff' : 'var(--text-primary)', cursor: 'pointer', zIndex: 1001 }}
+        >
+          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, x: '100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{
+                position: 'fixed',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                background: 'white',
+                zIndex: 1000,
+                padding: '100px 20px 40px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px'
+              }}
+            >
+              <Link to="/restaurants" style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--text-primary)' }} onClick={() => setIsMenuOpen(false)}>Explore</Link>
+              <Link to="/cart" style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--text-primary)' }} onClick={() => setIsMenuOpen(false)}>Cart ({cartItems.length})</Link>
+              {user ? (
+                <>
+                  <Link to="/orders" style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--text-primary)' }} onClick={() => setIsMenuOpen(false)}>My Orders</Link>
+                  <Link to="/dashboard" style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--text-primary)' }} onClick={() => setIsMenuOpen(false)}>Profile</Link>
+                  <button onClick={() => { logout(); setIsMenuOpen(false); }} style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--primary)', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>Logout</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--text-primary)' }} onClick={() => setIsMenuOpen(false)}>Login</Link>
+                  <Link to="/register" style={{ ...linkStyle(false), fontSize: '1.5rem', color: 'var(--text-primary)' }} onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      <style>{`
+        .nav-mobile-toggle { display: none; }
+        @media (max-width: 900px) {
+          .nav-desktop { display: none !important; }
+          .nav-mobile-toggle { display: block; }
+          .container { padding: 0 20px; }
+        }
+      `}</style>
     </nav>
   );
 };

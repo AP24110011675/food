@@ -19,7 +19,7 @@ import ImageSafe from '../components/ImageSafe';
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, payment_pending, preparing, delivered
+  const [filter, setFilter] = useState('all'); // all, pending, confirmed, preparing, delivered, deleted
 
   useEffect(() => {
     fetchOrders();
@@ -28,8 +28,9 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/orders');
-      setOrders(res.data.data || []);
+      const res = await api.get('/admin/orders');
+      const ordersData = res.data.data || res.data || [];
+      setOrders(ordersData);
     } catch {
       console.error('Failed to fetch orders');
     } finally {
@@ -37,25 +38,10 @@ const AdminOrders = () => {
     }
   };
 
-  const handleApprovePayment = async (orderId) => {
-    try {
-      if (!window.confirm('Confirm that you have received the payment for this order?')) return;
-      
-      const res = await api.put(`/orders/${orderId}/approve-payment`, { status: 'Preparing' });
-      if (res.data.success) {
-        setOrders(orders.map(o => o._id === orderId ? { ...o, isPaid: true, paymentStatus: 'Paid', status: 'Preparing' } : o));
-      }
-    } catch {
-      alert('Failed to approve payment');
-    }
-  };
-
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-      const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
-      if (res.data.success) {
-        setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus, isDelivered: newStatus === 'Delivered' } : o));
-      }
+      await api.put(`/admin/order/${orderId}`, { status: newStatus });
+      setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
     } catch {
       alert('Failed to update status');
     }
@@ -63,9 +49,11 @@ const AdminOrders = () => {
 
   const filteredOrders = orders.filter(o => {
     if (filter === 'all') return true;
-    if (filter === 'payment_pending') return o.status === 'Payment Pending Confirmation';
+    if (filter === 'pending') return o.status === 'Pending';
+    if (filter === 'confirmed') return o.status === 'Confirmed';
     if (filter === 'preparing') return o.status === 'Preparing';
     if (filter === 'delivered') return o.status === 'Delivered';
+    if (filter === 'deleted') return o.status === 'Deleted';
     return true;
   });
 
@@ -88,7 +76,7 @@ const AdminOrders = () => {
           <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', fontWeight: 500 }}>Global order management and payment verification.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px', background: '#f1f5f9', padding: '6px', borderRadius: '16px' }}>
-          {['all', 'payment_pending', 'preparing', 'delivered'].map(f => (
+          {['all', 'pending', 'confirmed', 'preparing', 'delivered', 'deleted'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -105,7 +93,7 @@ const AdminOrders = () => {
                 transition: 'all 0.2s'
               }}
             >
-              {f.replace('_', ' ').toUpperCase()}
+              {f.toUpperCase()}
             </button>
           ))}
         </div>
@@ -135,8 +123,8 @@ const AdminOrders = () => {
                       </span>
                     </div>
                     <div style={{ 
-                      color: order.status === 'Payment Pending Confirmation' ? '#d97706' : '#16a34a',
-                      background: order.status === 'Payment Pending Confirmation' ? '#fffbeb' : '#f0fdf4',
+                      color: order.status === 'Delivered' ? '#16a34a' : '#d97706',
+                      background: order.status === 'Delivered' ? '#f0fdf4' : '#fffbeb',
                       padding: '6px 16px',
                       borderRadius: '12px',
                       fontSize: '0.85rem',
@@ -147,7 +135,7 @@ const AdminOrders = () => {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                    {order.orderItems.map((item, idx) => (
+                    {order.items?.map((item, idx) => (
                       <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '16px' }}>
                         <div style={{ width: '50px', height: '50px', borderRadius: '12px', overflow: 'hidden' }}>
                           <ImageSafe src={item.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -165,8 +153,8 @@ const AdminOrders = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <User size={18} color="#94a3b8" />
                       <div style={{ fontSize: '0.9rem' }}>
-                        <p style={{ fontWeight: 700, margin: 0 }}>{order.user?.name}</p>
-                        <p style={{ color: '#64748b', margin: 0 }}>{order.user?.email}</p>
+                        <p style={{ fontWeight: 700, margin: 0 }}>{order.userId?.name || 'Guest'}</p>
+                        <p style={{ color: '#64748b', margin: 0 }}>{order.userId?.email || 'N/A'}</p>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -186,58 +174,35 @@ const AdminOrders = () => {
                       <span style={{ fontWeight: 600, color: '#64748b' }}>Method</span>
                       <span style={{ fontWeight: 800, color: 'var(--secondary)' }}>{order.paymentMethod}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontWeight: 600, color: '#64748b' }}>TXN ID</span>
-                      <span style={{ fontWeight: 800, fontFamily: 'monospace' }}>{order.upiTransactionId || 'N/A'}</span>
-                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>
                       <span style={{ fontWeight: 600, color: '#64748b' }}>Total</span>
-                      <span style={{ fontWeight: 900, color: 'var(--primary)' }}>₹{order.totalPrice}</span>
+                      <span style={{ fontWeight: 900, color: 'var(--primary)' }}>₹{order.totalAmount}</span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {order.status === 'Payment Pending Confirmation' && (
-                      <button 
-                        onClick={() => handleApprovePayment(order._id)}
-                        className="btn btn-primary" 
-                        style={{ width: '100%', justifyContent: 'center', background: '#10b981', boxShadow: '0 8px 16px rgba(16,185,129,0.2)' }}
-                      >
-                        <CheckCircle size={18} style={{ marginRight: '8px' }} /> Approve Payment
-                      </button>
-                    )}
+                    <select 
+                      onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
+                      value={order.status}
+                      style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 700, outline: 'none' }}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Preparing">Preparing</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Deleted">Deleted</option>
+                    </select>
 
-                    {['Confirmed', 'Preparing', 'Out for Delivery'].includes(order.status) && (
-                      <select 
-                        onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
-                        value={order.status}
-                        style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 700, outline: 'none' }}
-                      >
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Preparing">Preparing</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
-                      </select>
-                    )}
-
-                    {order.status === 'Placed' && (
-                       <button 
-                         onClick={() => handleUpdateStatus(order._id, 'Confirmed')}
-                         className="btn btn-secondary" 
-                         style={{ width: '100%', justifyContent: 'center' }}
-                       >
-                         Confirm Order
-                       </button>
-                    )}
-
-                    {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
-                      <button 
-                        onClick={() => handleUpdateStatus(order._id, 'Cancelled')}
-                        style={{ background: 'transparent', border: 'none', color: '#ef4444', fontWeight: 700, padding: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-                      >
-                        Cancel Order
-                      </button>
-                    )}
+                    <button 
+                      onClick={async () => {
+                        if (window.confirm('Mark this order as Deleted?')) {
+                          await handleUpdateStatus(order._id, 'Deleted');
+                        }
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: '#ef4444', fontWeight: 700, padding: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >
+                      Mark as Deleted
+                    </button>
                   </div>
                 </div>
               </div>

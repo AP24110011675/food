@@ -6,32 +6,41 @@ const Order = require('../models/order');
 // @access  Private
 const addOrderItems = asyncHandler(async (req, res) => {
     const {
-        orderItems,
+        items,
         shippingAddress,
         paymentMethod,
-        totalPrice
+        totalAmount
     } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
+    if (!items || items.length === 0) {
         res.status(400);
         throw new Error('No order items');
     }
 
+    if (!shippingAddress || !shippingAddress.address || !shippingAddress.city || !shippingAddress.postalCode || !shippingAddress.country) {
+        res.status(400);
+        throw new Error('Please provide complete shipping address (address, city, postalCode, country)');
+    }
+
+    if (!totalAmount || totalAmount <= 0) {
+        res.status(400);
+        throw new Error('Please provide a valid totalAmount');
+    }
+
     const order = new Order({
-        orderItems,
-        user: req.user._id,
+        items,
+        userId: req.user._id,
         shippingAddress,
         paymentMethod: paymentMethod || 'UPI',
-        paymentStatus: 'Pending',
-        totalPrice,
-        status: 'Placed'
+        totalAmount,
+        status: 'Pending'
     });
 
     const createdOrder = await order.save();
     res.status(201).json({ success: true, data: createdOrder });
 });
 
-// @desc    Mark order as "Payment Pending Confirmation" (user clicked "I have paid")
+// @desc    Mark payment info (user side)
 // @route   PUT /api/orders/:id/pay
 // @access  Private
 const markPaymentPending = asyncHandler(async (req, res) => {
@@ -42,36 +51,17 @@ const markPaymentPending = asyncHandler(async (req, res) => {
         throw new Error('Order not found');
     }
 
-    // Ensure the order belongs to this user
-    if (order.user.toString() !== req.user._id.toString()) {
+    if (order.userId.toString() !== req.user._id.toString()) {
         res.status(403);
         throw new Error('Not authorized');
     }
 
-    order.paymentStatus = 'Payment Pending Confirmation';
-    order.status = 'Payment Pending Confirmation';
     order.upiTransactionId = req.body.upiTransactionId || null;
-
-    const updatedOrder = await order.save();
-    res.json({ success: true, data: updatedOrder });
-});
-
-// @desc    Approve payment & move to "Confirmed/Preparing" (restaurant owner / admin)
-// @route   PUT /api/orders/:id/approve-payment
-// @access  Private (Owner / Admin)
-const approvePayment = asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
-
-    if (!order) {
-        res.status(404);
-        throw new Error('Order not found');
-    }
-
-    order.isPaid = true;
-    order.paidAt = Date.now();
-    order.paymentStatus = 'Paid';
-    order.status = req.body.status || 'Preparing';
-
+    order.status = 'Preparing'; // Move to Preparing automatically or keep as is? 
+    // User requested enum: ["Pending", "Preparing", "Delivered"]. 
+    // Let's keep it Pending until admin approves, or move to Preparing if auto-approve is desired.
+    // The user said "Admin sees order" after place order.
+    
     const updatedOrder = await order.save();
     res.json({ success: true, data: updatedOrder });
 });
@@ -80,31 +70,10 @@ const approvePayment = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/:id
 // @access  Private
 const getOrderById = asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id).populate('user', 'name email');
+    const order = await Order.findById(req.params.id).populate('userId', 'name email');
 
     if (order) {
         res.json({ success: true, data: order });
-    } else {
-        res.status(404);
-        throw new Error('Order not found');
-    }
-});
-
-// @desc    Update order status
-// @route   PUT /api/orders/:id/status
-// @access  Private (Owner / Admin)
-const updateOrderStatus = asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
-
-    if (order) {
-        order.status = req.body.status || order.status;
-        if (req.body.status === 'Delivered') {
-            order.isDelivered = true;
-            order.deliveredAt = Date.now();
-        }
-
-        const updatedOrder = await order.save();
-        res.json({ success: true, data: updatedOrder });
     } else {
         res.status(404);
         throw new Error('Order not found');
@@ -115,7 +84,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/myorders
 // @access  Private
 const getMyOrders = asyncHandler(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ userId: req.user._id }).sort({ createdAt: -1 });
     res.json({ success: true, count: orders.length, data: orders });
 });
 
@@ -124,17 +93,48 @@ const getMyOrders = asyncHandler(async (req, res) => {
 // @access  Private (Admin)
 const getAllOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find({})
-        .populate('user', 'name email')
+        .populate('userId', 'name email')
         .sort({ createdAt: -1 });
     res.json({ success: true, count: orders.length, data: orders });
+});
+
+// @desc    Approve Payment
+// @route   PUT /api/orders/:id/approve-payment
+// @access  Private/Owner
+const approvePayment = asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        const updatedOrder = await order.save();
+        res.json({ success: true, data: updatedOrder });
+    } else {
+        res.status(404);
+        throw new Error('Order not found');
+    }
+});
+
+// @desc    Update Order Status
+// @route   PUT /api/orders/:id/status
+// @access  Private/Owner
+const updateOrderStatus = asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+        order.status = req.body.status || order.status;
+        const updatedOrder = await order.save();
+        res.json({ success: true, data: updatedOrder });
+    } else {
+        res.status(404);
+        throw new Error('Order not found');
+    }
 });
 
 module.exports = {
     addOrderItems,
     markPaymentPending,
-    approvePayment,
     getOrderById,
-    updateOrderStatus,
     getMyOrders,
-    getAllOrders
+    getAllOrders,
+    approvePayment,
+    updateOrderStatus
 };

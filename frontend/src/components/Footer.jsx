@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, ChefHat, Heart, ExternalLink } from 'lucide-react'
 
 const Footer = () => {
   return (
-    <footer style={{ background: '#0f172a', color: '#fff', paddingTop: '100px', paddingBottom: '40px', position: 'relative', overflow: 'hidden' }}>
+    <footer style={{ marginTop: 'auto', background: '#0f172a', color: '#fff', paddingTop: '100px', paddingBottom: '40px', position: 'relative', overflow: 'hidden' }}>
       {/* Decorative background element */}
       <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(226, 55, 68, 0.05) 0%, transparent 70%)', zIndex: 0 }} />
       

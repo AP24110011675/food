@@ -46,6 +46,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = useCallback(() => {
     setCartItems([]);
+    localStorage.removeItem('cart');
   }, []);
 
   const cartTotal = useMemo(() => 

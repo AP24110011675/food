@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,14 +8,22 @@ import ImageSafe from '../components/ImageSafe';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, error, loading } = useAuth();
+  const { login, error, loading, clearError } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (clearError) clearError();
+  }, [clearError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await login(email, password);
     if (result.success) {
-      navigate('/');
+      if (result.user && (result.user.role === 'admin' || result.user.role === 'restaurant_owner')) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
     }
   };
 

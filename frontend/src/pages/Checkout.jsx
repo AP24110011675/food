@@ -54,7 +54,7 @@ const Checkout = () => {
     setLoading(true);
     try {
       const orderData = {
-        orderItems: cartItems.map(item => ({
+        items: cartItems.map(item => ({
           name: item.name,
           qty: item.quantity,
           image: item.image || 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400',
@@ -63,7 +63,7 @@ const Checkout = () => {
         })),
         shippingAddress: address,
         paymentMethod,
-        totalPrice: cartTotal,
+        totalAmount: cartTotal,
       };
 
       const res = await api.post('/orders', orderData);

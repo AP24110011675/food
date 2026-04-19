@@ -19,34 +19,62 @@ import { getRestaurantImage } from '../utils/restaurantImages';
 const Home = () => {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
+  const [locationName, setLocationName] = useState('📍 Hyderabad, TG');
+
+  const detectLocation = useCallback(() => {
+    if ("geolocation" in navigator) {
+      setLocationName('📍 Detecting...');
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const data = await res.json();
+          const city = data.city || data.locality || data.principalSubdivision || 'Hyderabad';
+          setLocationName(`📍 ${city}`);
+        } catch (error) {
+          console.error('Error in reverse geocoding:', error);
+          setLocationName('📍 Hyderabad');
+        }
+      }, (err) => {
+        console.error('Geolocation error:', err);
+        setLocationName('📍 Hyderabad');
+        alert("Please allow location access to see your city.");
+      });
+    } else {
+      alert("Geolocation is not supported by your browser");
+    }
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
   const dishesRef = useRef(null);
 
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchTopRestaurants = async () => {
       try {
-        const response = await api.get('/restaurants');
-        setRestaurants(response.data.data || []);
-      } catch (error) {
-        console.error('Error fetching restaurants:', error);
+        setLoading(true);
+        const res = await api.get("/restaurants");
+        const data = res.data.data || res.data || [];
+        setRestaurants(data.slice(0, 8)); // Top 8 for the home page
+      } catch (err) {
+        console.error('Error fetching restaurants:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchRestaurants();
-  }, []);
+    fetchTopRestaurants();
+    detectLocation();
+  }, [detectLocation]);
 
   const popularDishes = useMemo(() => [
-    { name: 'Biryani', price: '199', image: 'https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Pizza', price: '299', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Burgers', price: '149', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Sushi', price: '399', image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Pasta', price: '249', image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Desserts', price: '129', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Coffee', price: '99', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Healthy', price: '179', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Trending', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Biryani', image: 'https://images.unsplash.com/photo-1589302168068-964664d93cb0?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Pizza', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Burger', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80' },
+    { name: 'North Indian', image: 'https://images.unsplash.com/photo-1626074353765-517a681e40be?auto=format&fit=crop&w=500&q=80' },
+    { name: 'Chinese', image: 'https://images.unsplash.com/photo-1544333346-64e371bcd405?auto=format&fit=crop&w=500&q=80' },
   ], []);
 
   const handleSearch = useCallback((e) => {
@@ -85,14 +113,14 @@ const Home = () => {
   return (
     <div className="home-page">
       {/* 1. HERO CAROUSEL */}
-      <div style={{ marginTop: '-80px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
         <HeroCarousel>
           {/* Search Bar inside carousel overlay */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            style={{ width: '100%', maxWidth: '820px', margin: '0 auto', padding: '0 16px' }}
+            style={{ width: '100%', maxWidth: '820px', margin: '0 auto', padding: '0 16px', position: 'relative', zIndex: 10 }}
           >
             <form
               onSubmit={handleSearch}
@@ -107,10 +135,13 @@ const Home = () => {
                 gap: '0',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', flex: '1 1 160px', padding: '12px 20px', color: '#666', borderRight: '1.5px solid #f1f5f9', minWidth: 0 }}>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', flex: '1 1 160px', padding: '12px 20px', color: '#666', borderRight: '1.5px solid #f1f5f9', minWidth: 0, cursor: 'pointer' }}
+                onClick={detectLocation}
+              >
                 <MapPin size={20} color="#E23744" style={{ marginRight: '10px', flexShrink: 0 }} />
                 <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  Indiranagar, Bangalore
+                  {locationName}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', flex: '2 1 200px', padding: '12px 20px', color: '#666', minWidth: 0 }}>
@@ -155,10 +186,10 @@ const Home = () => {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            style={{ marginBottom: '40px' }}
+            style={{ marginBottom: '60px' }}
           >
             <h2 className="heading-md">Inspiration for your <span className="text-gradient">first order</span></h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Handcrafted categories for your unique cravings</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 500 }}>Handcrafted categories for your unique cravings</p>
           </motion.div>
           
           <motion.div 
@@ -167,13 +198,9 @@ const Home = () => {
             whileInView="visible"
             viewport={{ once: true }}
             ref={dishesRef}
-            className="hide-scrollbar"
+            className="grid-layout"
             style={{ 
-              display: 'flex', 
-              gap: '24px', 
-              overflowX: 'auto',
-              padding: '10px 0 40px',
-              scrollSnapType: 'x mandatory'
+              padding: '10px 0 20px',
             }}
           >
             {popularDishes.map((dish, i) => (
@@ -182,10 +209,11 @@ const Home = () => {
                 variants={itemVariants}
                 whileHover={{ y: -8 }}
                 style={{ 
-                  minWidth: '160px', 
                   textAlign: 'center', 
                   cursor: 'pointer',
-                  scrollSnapAlign: 'start'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
                 }}
                 onClick={() => navigate(`/restaurants?category=${dish.name}`)}
               >
@@ -221,32 +249,19 @@ const Home = () => {
               <h2 className="heading-md">Top restaurants near <span className="text-gradient">you</span></h2>
               <p style={{ color: 'var(--text-secondary)' }}>Discover the highest rated restaurants in your neighborhood</p>
             </motion.div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <motion.button whileTap={{ scale: 0.9 }} onClick={() => scroll('left')} className="btn glass-card" style={{ width: '48px', height: '48px', borderRadius: '50%', color: '#1a1a1a' }}>
-                <ChevronLeft size={24} />
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.9 }} onClick={() => scroll('right')} className="btn glass-card" style={{ width: '48px', height: '48px', borderRadius: '50%', color: '#1a1a1a' }}>
-                <ChevronRight size={24} />
-              </motion.button>
-            </div>
           </div>
 
           <motion.div 
-            ref={scrollRef}
-            className="hide-scrollbar" 
+            className="restaurant-grid" 
             style={{ 
-              display: 'flex', 
-              gap: '28px', 
-              overflowX: 'auto', 
               padding: '10px 0 40px',
-              scrollSnapType: 'x mandatory'
             }}
           >
             {loading ? (
               [1, 2, 3, 4].map(i => (
-                <div key={i} className="skeleton" style={{ minWidth: '360px', height: '420px', borderRadius: 'var(--radius-lg)' }}></div>
+                <div key={i} className="skeleton" style={{ height: '420px', borderRadius: 'var(--radius-lg)' }}></div>
               ))
-            ) : (
+            ) : restaurants.length > 0 ? (
               <AnimatePresence>
                 {restaurants.map((res, idx) => (
                   <motion.div 
@@ -257,50 +272,53 @@ const Home = () => {
                     transition={{ delay: idx * 0.1 }}
                     whileHover={{ y: -10 }}
                     style={{ 
-                      minWidth: '360px', 
                       cursor: 'pointer',
-                      scrollSnapAlign: 'start'
                     }}
-                    onClick={() => navigate(`/restaurants`)}
+                    onClick={() => navigate(`/restaurants?id=${res._id}`)}
                   >
-                    <div className="card" style={{ height: '100%', overflow: 'hidden', padding: 0 }}>
-                      <div style={{ height: '240px', position: 'relative' }}>
-                        <ImageSafe src={getRestaurantImage(res)} alt={res.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <div className="card-overlay" />
+                    <div className="card" style={{ height: '100%', overflow: 'hidden', padding: 0, borderRadius: '12px' }}>
+                      <div style={{ height: '220px', position: 'relative' }}>
+                        <ImageSafe src={getRestaurantImage(res)} alt={res.name} className="card-img-fixed" />
+                        <div className="card-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)', opacity: 1 }} />
                         <div style={{ 
                           position: 'absolute', 
                           top: '15px', 
                           right: '15px',
-                          background: 'rgba(255,255,255,0.95)',
+                          background: '#15b315',
                           padding: '4px 10px',
                           borderRadius: '8px',
-                          fontSize: '0.85rem',
+                          fontSize: '0.8rem',
                           fontWeight: 800,
-                          color: 'var(--primary)',
+                          color: 'white',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px'
+                          gap: '6px',
+                          boxShadow: 'var(--shadow-sm)',
+                          zIndex: 2
                         }}>
-                          <Star size={14} fill="currentColor" /> {res.rating}
-                        </div>
-                        <div style={{ position: 'absolute', bottom: '15px', left: '15px', color: 'white' }}>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{res.name}</div>
-                          <div style={{ fontSize: '0.9rem', opacity: 0.9, fontWeight: 500 }}>{res.deliveryTime || '30'} MINS • ₹{res.averageCost || '400'} for two</div>
+                          {res.rating} <Star size={12} fill="currentColor" />
                         </div>
                       </div>
                       <div style={{ padding: '20px' }}>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '16px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '4px', color: 'var(--text-primary)' }}>{res.name}</div>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {res.cuisineType?.join(', ') || 'Continental, Indian, Desserts'}
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--success)', fontWeight: 700, fontSize: '0.9rem' }}>
-                          <Zap size={16} fill="currentColor" />
-                          <span>FREE DELIVERY</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)' }}>₹{res.averageCost || '400'} for two</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <Zap size={14} fill="#fbbf24" color="#fbbf24" /> {res.deliveryTime || '30'} MINS
+                          </span>
                         </div>
                       </div>
                     </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
+            ) : (
+              <div style={{ textAlign: 'center', width: '100%', padding: '40px', color: 'var(--text-secondary)' }}>
+                <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>No top restaurants found in your area.</p>
+              </div>
             )}
           </motion.div>
         </div>

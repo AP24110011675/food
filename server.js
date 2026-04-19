@@ -23,6 +23,9 @@ app.use('/api/menu',        require('./backend/routes/menuRoutes'));
 app.use('/api/orders',      require('./backend/routes/orderRoutes'));
 app.use('/api/reviews',     require('./backend/routes/reviewRoutes'));
 app.use('/api/admin',       require('./backend/routes/adminRoutes'));
+app.use('/api/cart',        require('./backend/routes/cartRoutes'));
+app.use('/api/upload',      require('./backend/routes/uploadRoutes'));
+
 
 app.get('/', (req, res) => res.send('🍔 FoodHub API is performing optimally'));
 

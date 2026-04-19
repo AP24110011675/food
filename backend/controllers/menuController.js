@@ -6,7 +6,7 @@ const Restaurant = require('../models/restaurant');
 // @route   GET /api/menu/:restaurantId
 // @access  Public
 const getMenu = asyncHandler(async (req, res) => {
-    const menuItems = await MenuItem.find({ restaurant: req.params.restaurantId });
+    const menuItems = await MenuItem.find({ restaurantId: req.params.restaurantId });
     res.json({ success: true, count: menuItems.length, data: menuItems });
 });
 
@@ -14,7 +14,7 @@ const getMenu = asyncHandler(async (req, res) => {
 // @route   POST /api/menu/:restaurantId
 // @access  Private (Owner / Admin)
 const addMenuItem = asyncHandler(async (req, res) => {
-    req.body.restaurant = req.params.restaurantId;
+    req.body.restaurantId = req.params.restaurantId;
 
     const restaurant = await Restaurant.findById(req.params.restaurantId);
 
@@ -44,7 +44,7 @@ const updateMenuItem = asyncHandler(async (req, res) => {
         throw new Error('Menu item not found');
     }
 
-    const restaurant = await Restaurant.findById(menuItem.restaurant);
+    const restaurant = await Restaurant.findById(menuItem.restaurantId);
 
     if (restaurant.owner.toString() !== req.user.id && req.user.role !== 'admin') {
         res.status(401);
@@ -70,7 +70,7 @@ const deleteMenuItem = asyncHandler(async (req, res) => {
         throw new Error('Menu item not found');
     }
 
-    const restaurant = await Restaurant.findById(menuItem.restaurant);
+    const restaurant = await Restaurant.findById(menuItem.restaurantId);
 
     if (restaurant.owner.toString() !== req.user.id && req.user.role !== 'admin') {
         res.status(401);

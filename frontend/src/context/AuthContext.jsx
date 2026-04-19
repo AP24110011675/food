@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.data.token);
       setUser(res.data.data);
-      return { success: true };
+      return { success: true, user: res.data.data };
     } catch (err) {
       const msg = err.response?.data?.error || 'Login failed';
       setError(msg);
@@ -64,9 +64,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   const value = useMemo(() => ({
-    user, loading, error, login, register, logout
-  }), [user, loading, error, login, register, logout]);
+    user, loading, error, login, register, logout, clearError
+  }), [user, loading, error, login, register, logout, clearError]);
 
   return (
     <AuthContext.Provider value={value}>

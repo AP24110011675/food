@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,8 +12,12 @@ const Register = () => {
     password: '',
     phone: ''
   });
-  const { register, error, loading } = useAuth();
+  const { register, error, loading, clearError } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (clearError) clearError();
+  }, [clearError]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

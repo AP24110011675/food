@@ -26,15 +26,12 @@ const Orders = () => {
   }, []);
 
   const StatusStepper = ({ currentStatus }) => {
-    let statuses = ['Placed', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
+    let statuses = ['Pending', 'Preparing', 'Delivered'];
     
-    let statusClean = (currentStatus || 'placed').toLowerCase();
-    
-    const isPaymentPendingResult = statusClean.includes('payment pending');
-    if (isPaymentPendingResult) statusClean = 'placed';
+    let statusClean = (currentStatus || 'pending').toLowerCase();
     
     if (statusClean.includes('cancelled')) {
-      statuses = ['Placed', 'Cancelled'];
+      statuses = ['Pending', 'Cancelled'];
       statusClean = 'cancelled';
     }
 
@@ -156,7 +153,7 @@ const Orders = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '32px' }}>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '12px', borderRadius: '16px', color: 'var(--primary)', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                   <div style={{ background: 'rgba(var(--primary-rgb), 0.08)', padding: '12px', borderRadius: '16px', color: 'var(--primary)', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Package size={28} />
                   </div>
                   <div>
@@ -203,7 +200,7 @@ const Orders = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '60px' }} className="grid-responsive">
                 <div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {order.orderItems.map((item, idx) => (
+                    {order.items?.map((item, idx) => (
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderRadius: '16px', background: '#f8fafc', transition: 'transform 0.2s ease' }} className="hover-pop">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                           <div style={{ width: '48px', height: '48px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
@@ -219,31 +216,6 @@ const Orders = () => {
                     ))}
                   </div>
                   
-                  {order.status === 'Payment Pending Confirmation' && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      style={{ 
-                        marginTop: '32px', 
-                        padding: '20px 24px', 
-                        background: '#fffbeb', 
-                        border: '1.5px solid #fcd34d', 
-                        borderRadius: '20px',
-                        display: 'flex',
-                        gap: '16px',
-                        alignItems: 'flex-start'
-                      }}
-                    >
-                      <Clock size={20} color="#d97706" style={{ marginTop: '2px', flexShrink: 0 }} />
-                      <div>
-                        <p style={{ fontWeight: 800, color: '#92400e', margin: '0 0 4px 0', fontSize: '1rem' }}>Payment Verification in Progress</p>
-                        <p style={{ color: '#b45309', margin: 0, fontSize: '0.9rem', lineHeight: 1.5, fontWeight: 500 }}>
-                          We&apos;ve received your payment details. A restaurant administrator is verifying the transaction. This usually takes <strong>5-10 minutes</strong>. Once verified, your order will move to &quot;Preparing&quot;.
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-
                   <StatusStepper currentStatus={order.status} />
                 </div>
                 
@@ -252,7 +224,7 @@ const Orders = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                       <span>Subtotal</span>
-                      <span style={{ color: 'var(--text-primary)' }}>₹{order.totalPrice}</span>
+                      <span style={{ color: 'var(--text-primary)' }}>₹{order.totalAmount}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                       <span>Delivery</span>
@@ -260,7 +232,7 @@ const Orders = () => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '20px', borderTop: '2px dashed #cbd5e1', marginTop: '4px' }}>
                       <span style={{ fontWeight: 900, fontSize: '1.4rem' }}>Paid</span>
-                      <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.4rem' }}>₹{order.totalPrice}</span>
+                      <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.4rem' }}>₹{order.totalAmount}</span>
                     </div>
                   </div>
                   

@@ -5,17 +5,17 @@ import { useCart } from '../hooks/useCart';
 import { Star, MapPin, ChevronLeft, ChevronRight, Zap, Search, Filter, Clock, Flame, Info, CheckCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageSafe from '../components/ImageSafe';
+import RestaurantCard from '../components/RestaurantCard';
 import { getRestaurantImage, getMenuItemImage, RESTAURANT_IMAGE_POOL } from '../utils/restaurantImages';
 
 const CATEGORIES = [
   { id: 'all', name: 'All', icon: '🍽️' },
+  { id: 'trending', name: 'Trending', icon: '🔥' },
   { id: 'biryani', name: 'Biryani', icon: '🍚' },
   { id: 'pizza', name: 'Pizza', icon: '🍕' },
   { id: 'burger', name: 'Burger', icon: '🍔' },
   { id: 'north indian', name: 'North Indian', icon: '🍛' },
   { id: 'chinese', name: 'Chinese', icon: '🥡' },
-  { id: 'desserts', name: 'Desserts', icon: '🍰' },
-  { id: 'healthy', name: 'Healthy', icon: '🥗' },
 ];
 
 const Restaurants = () => {
@@ -51,8 +51,10 @@ const Restaurants = () => {
   const fetchRestaurants = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get('/restaurants');
-      setRestaurants(res.data.data || []);
+      const res = await api.get("/restaurants");
+      const items = res.data.data || res.data || [];
+      setRestaurants(items);
+      console.log("Restaurants Loaded:", items.length);
     } catch (err) {
       console.error('Failed to fetch restaurants:', err);
     } finally {
@@ -64,7 +66,7 @@ const Restaurants = () => {
     try {
       setLoading(true);
       const res = await api.get(`/menu/${restaurantId}`);
-      setMenuItems(res.data.data || []);
+      setMenuItems(res.data.data || res.data || []);
     } catch (err) {
       console.error('Failed to fetch menu:', err);
     } finally {
@@ -86,14 +88,41 @@ const Restaurants = () => {
     if (cat) setCategoryFilter(cat);
   }, [searchParams, fetchRestaurants]);
 
-  const filteredRestaurants = useMemo(() => {
-    return restaurants.filter(r => {
-      const nameMatch = r.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const cuisineMatch = r.cuisineType?.some(c => c.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesCategory = categoryFilter === 'all' || r.cuisineType?.some(c => c.toLowerCase().includes(categoryFilter.toLowerCase()));
-      return (nameMatch || cuisineMatch) && matchesCategory;
-    });
-  }, [restaurants, searchTerm, categoryFilter]);
+  useEffect(() => {
+    const id = searchParams.get('id');
+    if (id && restaurants.length > 0 && !selectedRestaurant) {
+      const restaurant = restaurants.find(r => r._id === id);
+      if (restaurant) handleSelectRestaurant(restaurant);
+    }
+  }, [searchParams, restaurants, handleSelectRestaurant, selectedRestaurant]);
+
+  const filtered = useMemo(() => {
+    let output = restaurants;
+
+    // Search term filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      output = output.filter(r => 
+        r.name.toLowerCase().includes(term) || 
+        r.category.toLowerCase().includes(term) ||
+        r.cuisineType?.some(c => c.toLowerCase().includes(term))
+      );
+    }
+
+    // Category filter
+    if (categoryFilter.toLowerCase() !== 'all') {
+      if (categoryFilter.toLowerCase() === 'trending') {
+        output = output.filter(r => r.isTrending === true);
+      } else {
+        output = output.filter(r => 
+          r.category?.toLowerCase() === categoryFilter.toLowerCase() ||
+          r.cuisineType?.some(c => c.toLowerCase() === categoryFilter.toLowerCase())
+        );
+      }
+    }
+
+    return output;
+  }, [restaurants, categoryFilter, searchTerm]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -112,10 +141,10 @@ const Restaurants = () => {
     return (
       <div className="container" style={{ padding: '120px 20px' }}>
         <div className="skeleton" style={{ height: '60px', width: '400px', marginBottom: '48px', borderRadius: '16px' }}></div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '32px' }}>
+        <div className="grid-layout">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="card" style={{ height: '400px', padding: 0, borderRadius: '24px' }}>
-              <div className="skeleton" style={{ height: '220px', width: '100%', borderRadius: '24px 24px 0 0' }}></div>
+            <div key={i} className="card" style={{ padding: 0, borderRadius: '24px' }}>
+              <div className="skeleton card-img-fixed" style={{ borderRadius: '24px 24px 0 0' }}></div>
               <div style={{ padding: '24px' }}>
                 <div className="skeleton" style={{ height: '28px', width: '75%', marginBottom: '16px' }}></div>
                 <div className="skeleton" style={{ height: '18px', width: '50%' }}></div>
@@ -128,7 +157,7 @@ const Restaurants = () => {
   }
 
   return (
-    <div className="restaurants-page" style={{ paddingTop: '100px', minHeight: '100vh', background: '#fcfcfc' }}>
+    <div className="restaurants-page" style={{ paddingTop: 'calc(var(--nav-height) + 40px)', minHeight: '100vh', background: 'var(--bg-subtle)' }}>
       {!selectedRestaurant ? (
         <motion.div
            initial="hidden"
@@ -139,10 +168,10 @@ const Restaurants = () => {
           <section className="container" style={{ marginBottom: '60px' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', marginBottom: '40px' }}>
               <motion.div variants={itemVariants}>
-                <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '8px', color: 'var(--text-primary)' }}>
+                <h1 className="heading-lg" style={{ marginBottom: '8px' }}>
                   Satisfy your <span className="text-gradient">Cravings</span>
                 </h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 600 }}>Discover the best food & drinks in your area.</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', fontWeight: 500 }}>Discover the best food & drinks in your area.</p>
               </motion.div>
               
               <motion.div variants={itemVariants} style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
@@ -153,10 +182,10 @@ const Restaurants = () => {
                   placeholder="Search restaurants or cuisines..." 
                   style={{ 
                     paddingLeft: '60px', 
-                    borderRadius: '24px', 
-                    height: '68px',
-                    fontSize: '1.1rem',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.06)',
+                    borderRadius: 'var(--radius-md)', 
+                    height: '64px',
+                    fontSize: '1.05rem',
+                    boxShadow: 'var(--shadow-md)',
                     border: '1px solid rgba(0,0,0,0.05)',
                     background: '#fff'
                   }}
@@ -169,19 +198,23 @@ const Restaurants = () => {
             {/* Category Chips */}
             <motion.div 
               variants={itemVariants}
-              style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', className: 'no-scrollbar' }}
+              style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', paddingBottom: '16px' }}
+              className="no-scrollbar"
             >
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => setCategoryFilter(cat.id)}
+                  onClick={() => {
+                    setCategoryFilter(cat.id);
+                    setSearchTerm(''); // Reset search when category is selected
+                  }}
                   style={{
                     padding: '12px 28px',
                     borderRadius: '16px',
                     border: '1.5px solid',
-                    borderColor: categoryFilter === cat.id ? 'var(--primary)' : 'rgba(0,0,0,0.05)',
-                    background: categoryFilter === cat.id ? 'var(--primary)' : '#fff',
-                    color: categoryFilter === cat.id ? '#fff' : 'var(--text-primary)',
+                    borderColor: categoryFilter.toLowerCase() === cat.id.toLowerCase() ? 'var(--primary)' : 'rgba(0,0,0,0.05)',
+                    background: categoryFilter.toLowerCase() === cat.id.toLowerCase() ? 'var(--primary)' : '#fff',
+                    color: categoryFilter.toLowerCase() === cat.id.toLowerCase() ? '#fff' : 'var(--text-primary)',
                     fontWeight: 700,
                     fontSize: '0.95rem',
                     cursor: 'pointer',
@@ -209,35 +242,24 @@ const Restaurants = () => {
                   </h2>
                   <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>The most frequent orders in your neighborhood</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={() => scrollSlider('left')} className="btn glass-card" style={{ width: '48px', height: '48px', padding: 0, borderRadius: '50%', color: 'var(--text-primary)', justifyContent: 'center' }}>
-                    <ChevronLeft size={24} />
-                  </button>
-                  <button onClick={() => scrollSlider('right')} className="btn glass-card" style={{ width: '48px', height: '48px', padding: 0, borderRadius: '50%', color: 'var(--text-primary)', justifyContent: 'center' }}>
-                    <ChevronRight size={24} />
-                  </button>
-                </div>
               </div>
 
               <div 
-                ref={sliderRef}
-                className="slider-container" 
+                className="restaurant-grid" 
                 style={{ 
-                  height: '380px', 
-                  gap: '32px',
-                  padding: '10px 10px 40px'
+                  padding: '10px 0 40px'
                 }}
               >
                 {featuredDishes.map((dish) => (
                   <motion.div
                     key={dish.id}
                     whileHover={{ y: -10 }}
-                    style={{ minWidth: '300px', height: '100%', cursor: 'pointer' }}
+                    style={{ cursor: 'pointer' }}
                     onClick={() => setSearchTerm(dish.name)}
                   >
                     <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0, borderRadius: '28px', boxShadow: 'var(--shadow-lg)' }}>
-                      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-                        <ImageSafe src={dish.image} alt={dish.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'relative', overflow: 'hidden' }}>
+                        <ImageSafe src={dish.image} alt={dish.name} className="card-img-fixed" />
                         <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'rgba(var(--primary-rgb), 0.95)', color: 'white', padding: '6px 14px', borderRadius: '14px', fontSize: '0.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(10px)' }}>
                           <Flame size={14} fill="white" /> TRENDING
                         </div>
@@ -260,50 +282,14 @@ const Restaurants = () => {
 
           <section className="container" style={{ marginBottom: '100px' }}>
             <motion.div variants={itemVariants} style={{ marginBottom: '40px' }}>
-               <h2 style={{ fontSize: '2.5rem', fontWeight: 900 }}>Popular <span style={{ color: 'var(--primary)' }}>Halt</span> 📍</h2>
-               <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{filteredRestaurants.length} restaurants ready to serve you</p>
+               <h2 className="heading-md">Popular <span style={{ color: 'var(--primary)' }}>Hub</span> 📍</h2>
+               <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', fontWeight: 500 }}>{filtered.length} restaurants ready to serve you</p>
             </motion.div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '40px' }}>
-              {filteredRestaurants.length > 0 ? (
-                filteredRestaurants.map((restaurant) => (
-                  <motion.div 
-                    key={restaurant._id} 
-                    variants={itemVariants}
-                    className="card hover-pop" 
-                    style={{ cursor: 'pointer', overflow: 'hidden', padding: 0, borderRadius: '32px', border: '1px solid rgba(0,0,0,0.03)', boxShadow: 'var(--shadow-md)', background: '#fff' }}
-                    onClick={() => handleSelectRestaurant(restaurant)}
-                  >
-                    <div style={{ height: '240px', position: 'relative', overflow: 'hidden' }}>
-                      <ImageSafe
-                        src={getRestaurantImage(restaurant)}
-                        fallback={RESTAURANT_IMAGE_POOL[0]}
-                        alt={restaurant.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-                      />
-                      <div className="card-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)' }} />
-                      <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
-                        <div style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                           <Clock size={14} /> {restaurant.deliveryTime || '25-30'} MINS
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ padding: '24px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{restaurant.name}</h3>
-                        <div style={{ background: '#15b315', color: 'white', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '10px', fontSize: '1rem', fontWeight: 900 }}>
-                          {restaurant.rating || '4.2'} <Star size={14} fill="white" />
-                        </div>
-                      </div>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '24px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {restaurant.cuisineType?.join(' • ')}
-                      </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 700, borderTop: '1px solid #f8fafc', paddingTop: '20px' }}>
-                        <span>₹{restaurant.averageCost || '300'} for two</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> {restaurant.address?.city || restaurant.address || 'Bandra'}</span>
-                      </div>
-                    </div>
-                  </motion.div>
+            <div className="restaurant-grid">
+              {filtered.length > 0 ? (
+                filtered.map((restaurant) => (
+                  <RestaurantCard key={restaurant._id} data={restaurant} onClick={handleSelectRestaurant} />
                 ))
               ) : (
                 <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '100px 0' }}>
